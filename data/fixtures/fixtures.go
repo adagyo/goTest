@@ -1,19 +1,20 @@
-package usersFixtures
+package fixtures
 
 import (
 	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"strconv"
 )
 
-type user struct {
-	id       int
-	login    string
-	password string
-	name     string
+type User struct {
+	Uid      int
+	Login    string
+	Password string
+	Name     string
 }
 
-func Load() {
+func LoadUsers() {
 	session, err := mgo.Dial("localhost")
 
 	if err != nil {
@@ -31,6 +32,7 @@ func Load() {
 
 	fmt.Println("Populating collection 'users' with 100 documents")
 	for i := 0; i < 100; i++ {
-		usersCollection.Insert(&user{i, "user_" + string(i), "secret", "User #" + string(i)})
+		usersCollection.Insert(&User{Uid: i, Login: "user_" + strconv.Itoa(i), Password: "secret", Name: "User #" + strconv.Itoa(i)})
 	}
+
 }
