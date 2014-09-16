@@ -1,40 +1,17 @@
 package main
 
 import (
-	"./data/fixtures"
+	"./entities"
+	"./fixtures"
+	"./utils"
+	"encoding/json"
+	_ "fmt"
 	"github.com/gorilla/mux"
 	"net/http"
-	"fmt"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	"strconv"
-	"encoding/json"
 )
 
-type User struct {
-	Uid      int
-	Login    string
-	Password string
-	Name     string
-}
-
-func GetUserByUid(uid int) User {
-	session, err := mgo.Dial("localhost")
-
-	if err != nil {
-		panic(err)
-	}
-
-	db := session.DB("myapi")
-	usersCollection := db.C("users")
-
-	var u User
-	err = usersCollection.Find(bson.M{"Uid": uid}).One(&u)
-	if err != nil {
-		fmt.Println("got an error finding user with Uid: " + strconv.Itoa(uid))
-	}
-	return u
-}
+var conf *utils.Config
 
 func ListUsers(writer http.ResponseWriter, request *http.Request) {
 	//requestParams = mux.Vars(request)
@@ -45,27 +22,33 @@ func ListUsers(writer http.ResponseWriter, request *http.Request) {
 func GetUser(writer http.ResponseWriter, request *http.Request) {
 	requestParams := mux.Vars(request)
 
-	uid,err := strconv.Atoi(requestParams["id"])
+	uid, err := strconv.Atoi(requestParams["id"])
 	if err != nil {
-		uid = 0
+		writer.Write([]byte(err))
 	}
 
 	writer.Write([]byte("J'affiche le users #" + requestParams["id"]))
-	j,err2 := json.Marshal(GetUserByUid(uid))
-	if err2 != nil {
-		j = []byte("{}")
-	}
+	j, _ := json.Marshal(User.GetUserByUid(uid, conf))
 	writer.Write([]byte(j))
 }
 
 func main() {
-	fixtures.LoadUsers()
+	// Load configuration
+	utils.LoadConfig(conf)
+
+	// Connect to Mongo and select the database
+	sess, ErrNo := utils.Connect(conf)
+	if ErrNo > 0 {
+		panic("[FATAL] Could not connect to mongo URL '" + conf.MgoURL + "'.")
+	}
+	defer sess.Close()
+
+	fixtures.LoadUsers(sess, conf)
 
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api/v1/users", ListUsers).Methods("GET")
 	router.HandleFunc("/api/v1/users/{id:[0-9]*}", GetUser).Methods("GET")
-	//router.HandleFunc("/api/v1/users", ListUsers)
 
 	http.ListenAndServe(":8000", router)
 }
