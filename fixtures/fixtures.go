@@ -5,7 +5,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
-	"./../entities"
+	"github.com/adagyo/goTest/entities"
 )
 
 func LoadUsers(db *mgo.Database) {
