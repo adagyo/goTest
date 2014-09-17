@@ -1,11 +1,10 @@
 package main
 
 import (
-	"./entities"
-	"./fixtures"
-	"./utils"
+	"github.com/adagyo/goTest/entities"
+	"github.com/adagyo/goTest/fixtures"
+	"github.com/adagyo/goTest/utils"
 	"encoding/json"
-	_ "fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
