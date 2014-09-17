@@ -1,6 +1,9 @@
 package utils
 
 type Config struct {
+	// Fixtures loader switcher
+	LoadFixtures bool
+
 	// Mongo URL
 	MgoURL string
 
@@ -9,6 +12,8 @@ type Config struct {
 }
 
 func LoadConfig(conf *Config) {
+	conf.LoadFixtures = false
+
 	conf.MgoURL = "localhost"
-	conf.MgoDB	= "myApi"
+	conf.MgoDB	= "myapi"
 }

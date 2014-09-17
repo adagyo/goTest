@@ -6,11 +6,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"./../entities"
-	"./../utils"
 )
 
-func LoadUsers(sess *mgo.Session, conf *utils.Config) {
-	usersCollection := sess.DB(conf.MgoDB).C("users")
+func LoadUsers(db *mgo.Database) {
+	usersCollection := db.C("users")
 
 	nbUsers, _ := usersCollection.Count()
 	if nbUsers > 0 {
@@ -20,7 +19,7 @@ func LoadUsers(sess *mgo.Session, conf *utils.Config) {
 
 	fmt.Println("Populating collection 'users' with 100 documents")
 	for i := 0; i < 100; i++ {
-		usersCollection.Insert(&entities.User{Uid: i, Login: "user_" + strconv.Itoa(i), Password: "secret", Name: "User #" + strconv.Itoa(i)})
+		usersCollection.Insert(&entities.User{UserId: i, Login: "user_" + strconv.Itoa(i), Password: "secret", Name: "User #" + strconv.Itoa(i)})
 	}
 
 }

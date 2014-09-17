@@ -9,9 +9,12 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"gopkg.in/mgo.v2"
 )
 
-var conf *utils.Config
+var conf utils.Config
+var db *mgo.Database
+var session *mgo.Session
 
 func ListUsers(writer http.ResponseWriter, request *http.Request) {
 	//requestParams = mux.Vars(request)
@@ -24,26 +27,36 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 
 	uid, err := strconv.Atoi(requestParams["id"])
 	if err != nil {
-		writer.Write([]byte(err))
+		writer.Write([]byte("id is not an integer"))
+	} else {
+		u2find := entities.GetUserByUid(db, uid)
+		if u2find.ErrMsg != "" {
+			writer.WriteHeader(404)
+		} else {
+			j, _ := json.Marshal(u2find)
+			writer.Write([]byte(j))
+		}
 	}
-
-	writer.Write([]byte("J'affiche le users #" + requestParams["id"]))
-	j, _ := json.Marshal(User.GetUserByUid(uid, conf))
-	writer.Write([]byte(j))
 }
 
 func main() {
 	// Load configuration
-	utils.LoadConfig(conf)
+	utils.LoadConfig(&conf)
 
 	// Connect to Mongo and select the database
-	sess, ErrNo := utils.Connect(conf)
-	if ErrNo > 0 {
+	var ErrNo int
+	session, db, ErrNo = utils.Connect(&conf)
+	switch ErrNo {
+	case 1:
 		panic("[FATAL] Could not connect to mongo URL '" + conf.MgoURL + "'.")
+	case 2:
+		panic("[FATAL] Database '" + conf.MgoDB + "' does not exist.")
 	}
-	defer sess.Close()
+	defer session.Close()
 
-	fixtures.LoadUsers(sess, conf)
+	if conf.LoadFixtures == true {
+		fixtures.LoadUsers(db)
+	}
 
 	router := mux.NewRouter()
 

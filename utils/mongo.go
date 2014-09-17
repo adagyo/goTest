@@ -4,9 +4,10 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func Connect(conf *Config) (*mgo.Session, int) {
+func Connect(conf *Config) (*mgo.Session, *mgo.Database, int) {
 	session, err := mgo.Dial(conf.MgoURL); if err != nil {
-		return nil, 1
+		return nil, nil, 1
 	}
-	return session, 0
+	// TODO: Check if database exists and return err=2 if not
+	return session, session.DB(conf.MgoDB), 0
 }
