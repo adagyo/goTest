@@ -2,10 +2,10 @@ package fixtures
 
 import (
 	"fmt"
+	"github.com/adagyo/goTest/entities"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
-	"github.com/adagyo/goTest/entities"
 )
 
 func LoadUsers(db *mgo.Database) {
@@ -19,7 +19,12 @@ func LoadUsers(db *mgo.Database) {
 
 	fmt.Println("Populating collection 'users' with 100 documents")
 	for i := 0; i < 100; i++ {
-		usersCollection.Insert(&entities.User{UserId: i, Login: "user_" + strconv.Itoa(i), Password: "secret", Name: "User #" + strconv.Itoa(i)})
+		usersCollection.Insert(&entities.User{
+			UserId:   i,
+			Login:    "user_" + strconv.Itoa(i),
+			Password: "secret",
+			Name:     "User #" + strconv.Itoa(i),
+		})
 	}
 
 }

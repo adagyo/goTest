@@ -15,5 +15,5 @@ func LoadConfig(conf *Config) {
 	conf.LoadFixtures = false
 
 	conf.MgoURL = "localhost"
-	conf.MgoDB	= "myapi"
+	conf.MgoDB = "myapi"
 }

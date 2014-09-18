@@ -1,24 +1,28 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/adagyo/goTest/entities"
 	"github.com/adagyo/goTest/fixtures"
 	"github.com/adagyo/goTest/utils"
-	"encoding/json"
 	"github.com/gorilla/mux"
+	"gopkg.in/mgo.v2"
+	"log"
 	"net/http"
 	"strconv"
-	"gopkg.in/mgo.v2"
 )
 
-var conf utils.Config
-var db *mgo.Database
-var session *mgo.Session
+var (
+	conf    utils.Config
+	db      *mgo.Database
+	session *mgo.Session
+)
 
 func ListUsers(writer http.ResponseWriter, request *http.Request) {
-	//requestParams = mux.Vars(request)
-
-	writer.Write([]byte("Je liste les users"))
+	requestParams := utils.ParseRequestParameters(request)
+	users := entities.GetUsers(db, requestParams)
+	j, _ := json.Marshal(users)
+	writer.Write([]byte(j))
 }
 
 func GetUser(writer http.ResponseWriter, request *http.Request) {
@@ -31,6 +35,7 @@ func GetUser(writer http.ResponseWriter, request *http.Request) {
 		u2find := entities.GetUserByUid(db, uid)
 		if u2find.ErrMsg != "" {
 			writer.WriteHeader(404)
+			writer.Write([]byte(u2find.ErrMsg))
 		} else {
 			j, _ := json.Marshal(u2find)
 			writer.Write([]byte(j))
@@ -47,9 +52,9 @@ func main() {
 	session, db, ErrNo = utils.Connect(&conf)
 	switch ErrNo {
 	case 1:
-		panic("[FATAL] Could not connect to mongo URL '" + conf.MgoURL + "'.")
+		log.Fatal("[FATAL] Could not connect to mongo URL '" + conf.MgoURL + "'.")
 	case 2:
-		panic("[FATAL] Database '" + conf.MgoDB + "' does not exist.")
+		log.Fatal("[FATAL] Database '" + conf.MgoDB + "' does not exist.")
 	}
 	defer session.Close()
 
@@ -62,5 +67,6 @@ func main() {
 	router.HandleFunc("/api/v1/users", ListUsers).Methods("GET")
 	router.HandleFunc("/api/v1/users/{id:[0-9]*}", GetUser).Methods("GET")
 
+	log.Println("Server is listening on port 8000")
 	http.ListenAndServe(":8000", router)
 }
